@@ -2,7 +2,7 @@ import pytesseract
 from .image import preprocess_image, crop_mrz_region
 from .mrz import parse_mrz
 from .fulltext import extract_full_text
-from .utils import format_date, get_country_name, calculate_issue_date_from_expiry, normalize_date, remove_accents, extract_matching_fullname
+from .utils import format_date, get_country_name, calculate_issue_date_from_expiry, normalize_date, remove_accents, extract_matching_fullname, correct_common_misspellings
 
 def read_passport(image_path, crop_mrz=True, extra_fields=False):
     """
@@ -66,6 +66,9 @@ def read_passport(image_path, crop_mrz=True, extra_fields=False):
         if 'date_of_issue' in result:
             # date_of_issue comes from OCR (full text), so it might be dd/mm/yyyy
             result['date_of_issue'] = normalize_date(result['date_of_issue'])
+            
+        if 'place_of_issue' in result:
+            result['place_of_issue'] = correct_common_misspellings(result['place_of_issue'], 'place_of_issue')
             
         # Fallback: If date_of_issue is missing, calculate from expiry_date (Expiry - 10 years)
         if 'date_of_issue' not in result and 'expiry_date' in result:

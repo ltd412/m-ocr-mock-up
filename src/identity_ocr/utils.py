@@ -229,3 +229,28 @@ def extract_matching_fullname(visual_fullname, mrz_fullname):
         return visual_fullname[orig_start : orig_end + 1]
     except ValueError:
         return None
+
+from difflib import get_close_matches
+
+KNOWN_PLACES_OF_ISSUE = [
+    "Cuc Quan ly xuat nhap canh",
+    "Immigration Department",
+    "Ministry of Foreign Affairs",
+    "Department of State",
+    "Passport Office"
+]
+
+def correct_common_misspellings(text, field_type):
+    """
+    Corrects common OCR errors for specific fields using fuzzy matching.
+    """
+    if not text:
+        return text
+        
+    if field_type == 'place_of_issue':
+        # Check against known list
+        matches = get_close_matches(text, KNOWN_PLACES_OF_ISSUE, n=1, cutoff=0.6)
+        if matches:
+            return matches[0]
+            
+    return text

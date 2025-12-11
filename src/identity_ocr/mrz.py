@@ -60,6 +60,10 @@ def parse_mrz(mrz_text):
             cleaned = re.sub(r'(?<=<)[KX]', '<', cleaned)
             cleaned = re.sub(r'[KX](?=<)', '<', cleaned)
 
+        # Heuristic: PP at start of line 1 -> P<
+        if line.startswith('PP'):
+            cleaned = 'P<' + cleaned[2:]
+
         cleaned_lines.append(cleaned)
     
     mrz_lines = cleaned_lines
@@ -158,12 +162,29 @@ def parse_mrz(mrz_text):
                 return res_k
         
         # Keep track of the "best" invalid result
-        # If we applied the VNM heuristic, this result is likely "better" than the original
-        # even if it's still invalid.
+        # Priority:
+        # 1. Valid result (returned immediately above)
+        # 2. Result with VNM country (heuristic)
+        # 3. Result with a detected type (TD1/TD2/TD3)
+        # 4. Any result
+        
         if best_result is None:
             best_result = res
-        elif res.get('country') == 'VNM' and best_result.get('country') != 'VNM':
-             best_result = res
+        else:
+            # Check if current res is "better" than best_result
+            
+            # If best_result has a warning/error and res has a type, res is better
+            if 'type' in res and 'type' not in best_result:
+                best_result = res
+            # If both have type, prefer VNM (existing heuristic)
+            elif 'type' in res and 'type' in best_result:
+                if res.get('country') == 'VNM' and best_result.get('country') != 'VNM':
+                    best_result = res
+                # If both are same country or neither is VNM, maybe prefer the one with more fields?
+                # For now, stick to VNM preference or first found.
+            # If best_result has error and res has warning, res is better?
+            elif 'error' in best_result and 'warning' in res:
+                best_result = res
 
     # If nothing worked to make it valid, return the best result we found
     # (likely the one with heuristics applied)
