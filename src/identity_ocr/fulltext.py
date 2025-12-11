@@ -13,7 +13,7 @@ def extract_full_text(image):
     
     # Use standard English model
     custom_config = r'--oem 3 --psm 3'
-    text = pytesseract.image_to_string(image, config=custom_config)
+    text = pytesseract.image_to_string(image, lang='eng', config=custom_config)
     
     data = {"full_text": text}
     
@@ -86,8 +86,7 @@ def extract_full_text(image):
                     # Remove the matched keyword from the line
                     # We need to be careful because we matched on normalized string.
                     # Simple approach: Replace the matched part in the original line? Hard because indices shift.
-                    # Alternative: Just remove the keyword string if it appears verbatim, 
-                    # OR just split by colon/separators.
+                    # Alternative: Just split by colon/separators.
                     
                     # Let's try removing the keyword from the normalized line, then mapping back? Too complex.
                     # Simpler: Just split by ':' if present.
@@ -119,6 +118,9 @@ def extract_full_text(image):
 
                     # Remove leading/trailing special chars
                     final_value = re.sub(r'^[^a-zA-Z0-9]+', '', final_value)
+                    
+                    # Enforce ASCII/English only (remove accents)
+                    final_value = remove_accents(final_value)
                     
                     # Specific post-processing
                     if key == 'sex':

@@ -1,4 +1,4 @@
 pytesseract
-opencv-python
+opencv-python-headless
 mrz
 numpy

@@ -1,4 +1,0 @@
-pytesseract
-opencv-python
-mrz
-numpy

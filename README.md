@@ -1,4 +1,7 @@
-# Passport OCR Library
+# This is a mockup library used for OCR of identity documents.
+
+# Passport
+
 
 A Python library for extracting information from passports using OCR (Tesseract). It supports parsing MRZ (Machine Readable Zone) and extracting additional fields like "Place of Issue" and "Date of Issue" from the visual zone.
 
@@ -9,7 +12,7 @@ A Python library for extracting information from passports using OCR (Tesseract)
 *   **Data Formatting**:
     *   Dates are standardized to `dd-MM-YYYY`.
     *   Country codes are converted to full country names (e.g., `VNM` -> `Vietnam`).
-    *   Names are converted to Title Case (e.g., `LE TIEN DAT` -> `Le Tien Dat`).
+    *   Names are converted to Title Case (e.g., `NGUYEN VAN A` -> `Nguyen Van A`).
 *   **Input Flexibility**: Accepts image file paths or Base64 encoded strings.
 *   **Fallback Logic**: If `Date of Issue` is missing, it can infer it from `Expiry Date` (Expiry - 10 years).
 
@@ -26,8 +29,11 @@ sudo apt-get install tesseract-ocr libtesseract-dev
 ### Linux (Rocky/RHEL/CentOS)
 ```bash
 sudo dnf install epel-release
-sudo dnf install tesseract tesseract-devel
+sudo dnf install tesseract
 ```
+
+> [!NOTE]
+> If you encounter version conflicts with language packs, installing just `tesseract` is often sufficient as it usually includes English data. If you need other languages, ensure the version matches the installed tesseract version.
 
 ### macOS
 ```bash
@@ -43,7 +49,7 @@ Download and install the installer from [UB-Mannheim/tesseract](https://github.c
 2.  Install Python dependencies:
 
 ```bash
-pip install -r requirements.txt
+pip install m-ocr-mockup
 ```
 
 ## Usage
@@ -51,7 +57,7 @@ pip install -r requirements.txt
 ### Basic Usage (File Path)
 
 ```python
-from passport_ocr import read_passport
+from identity_ocr import read_passport
 
 # Path to your passport image
 image_path = "path/to/passport.jpg"
@@ -66,7 +72,7 @@ print(result)
 You can pass a Base64 string directly (with or without the `data:image/...;base64,` header).
 
 ```python
-from passport_ocr import read_passport
+from identity_ocr import read_passport
 
 # Your base64 string
 base64_string = "data:image/jpeg;base64,/9j/4AAQSkZJRg..."

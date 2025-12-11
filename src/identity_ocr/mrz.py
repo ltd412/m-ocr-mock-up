@@ -75,7 +75,11 @@ def parse_mrz(mrz_text):
     if len(mrz_lines) == 3:
         target_len = 30 # TD1
     elif len(mrz_lines) == 2:
-        if max_len > 38: # Closer to 44 than 36
+        # Heuristic for TD3 (Passport) vs TD2
+        # Passports usually start with 'P'
+        if mrz_lines[0].startswith('P'):
+             target_len = 44
+        elif max_len > 38: # Closer to 44 than 36
             target_len = 44 # TD3
         else:
             target_len = 36 # TD2
@@ -163,7 +167,7 @@ def parse_mrz(mrz_text):
 
     # If nothing worked to make it valid, return the best result we found
     # (likely the one with heuristics applied)
-    return best_result if best_result else result
+    return best_result
 
 def _parse_with_type_check(mrz_lines):
     try:
@@ -188,8 +192,11 @@ def _parse_td3(mrz_lines):
     checker = TD3CodeChecker(mrz_lines[0] + '\n' + mrz_lines[1])
     fields = checker.fields()
     
-    surname = fields.surname
-    name = fields.name
+    surname = str(fields.surname) if fields.surname else None
+    name = str(fields.name) if fields.name else None
+    
+    if surname == 'None': surname = None
+    if name == 'None': name = None
     
     # Manual fallback if library fails to extract names
     if not surname and not name:

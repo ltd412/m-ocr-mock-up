@@ -3,15 +3,12 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "passport_ocr"
-version = "0.1.0"
+name = "identity-ocr"
+version = "0.1.4"
 description = "A robust Python library for extracting information from passports using OCR (Tesseract) and MRZ parsing."
 readme = "README.md"
 requires-python = ">=3.7"
 license = {text = "MIT"}
-authors = [
-  { name="Your Name", email="your.email@example.com" },
-]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -22,14 +19,12 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
     "pytesseract",
-    "opencv-python",
+    "opencv-python-headless",
     "mrz",
     "numpy"
 ]
-
-[project.urls]
-"Homepage" = "https://github.com/yourusername/passport_ocr"
-"Bug Tracker" = "https://github.com/yourusername/passport_ocr/issues"
