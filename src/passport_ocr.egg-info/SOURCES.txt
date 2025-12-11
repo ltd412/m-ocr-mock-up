@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+src/passport_ocr/__init__.py
+src/passport_ocr/core.py
+src/passport_ocr/fulltext.py
+src/passport_ocr/image.py
+src/passport_ocr/mrz.py
+src/passport_ocr/utils.py
+src/passport_ocr.egg-info/PKG-INFO
+src/passport_ocr.egg-info/SOURCES.txt
+src/passport_ocr.egg-info/dependency_links.txt
+src/passport_ocr.egg-info/requires.txt
+src/passport_ocr.egg-info/top_level.txt
+tests/test_core.py
