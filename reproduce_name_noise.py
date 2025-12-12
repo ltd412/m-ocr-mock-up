@@ -1,6 +1,6 @@
 import sys
 sys.path.append('src')
-from identity_ocr.mrz import parse_mrz
+from m_identify_ocr.mrz import parse_mrz
 
 # Noisy MRZ simulating 'Sarah Lklk...'
 # SARAH followed by LKLK... which should be cleaned

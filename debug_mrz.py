@@ -2,7 +2,7 @@ import sys
 import os
 
 sys.path.append('src')
-from identity_ocr.mrz import parse_mrz
+from m_identify_ocr.mrz import parse_mrz
 
 mrz_td3 = """P<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<
 L898902C36UTO6908061F9406236ZE184226B<<<<<14"""

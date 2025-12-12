@@ -13,21 +13,21 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 # Define extensions
-# We want to compile all .py files in src/identity_ocr as separate extensions
+# We want to compile all .py files in src/m_identify_ocr as separate extensions
 # extensions = []
-# package_dir = os.path.join("src", "identity_ocr")
+# package_dir = os.path.join("src", "m_identify_ocr")
 
 # Ensure the directory exists before trying to list its contents
 # if os.path.isdir(package_dir):
 #     for filename in os.listdir(package_dir):
 #         if filename.endswith(".py") and filename != "__init__.py":
-#             module_name = f"identity_ocr.{filename[:-3]}"
+#             module_name = f"m_identify_ocr.{filename[:-3]}"
 #             file_path = os.path.join(package_dir, filename)
 #             extensions.append(Extension(module_name, [file_path]))
 
 setup(
-    name="identity-ocr",
-    version="0.1.14",
+    name="m-identify-ocr",
+    version="1.0.0",
     description="A robust Python library for extracting information from passports using OCR (Tesseract) and MRZ parsing.",
     long_description=long_description,
     long_description_content_type="text/markdown",

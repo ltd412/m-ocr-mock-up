@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "identity-ocr"
-version = "0.1.14"
+name = "m-identify-ocr"
+version = "1.0.0"
 description = "A robust Python library for extracting information from passports using OCR (Tesseract) and MRZ parsing."
 readme = "README.md"
 requires-python = ">=3.7"

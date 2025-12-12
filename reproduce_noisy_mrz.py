@@ -2,7 +2,7 @@ import sys
 import os
 
 sys.path.append('src')
-from identity_ocr.mrz import parse_mrz
+from m_identify_ocr.mrz import parse_mrz
 
 mrz_lines = """PPCANMARTIN<<LKSARAH<<LLLLLLLLLLLLLLLLLLLLLKLLLKLKL
 P123456AA0CAN9008010F3301144<<<<<<<<<LKLKLKL<L<<LKO6"""

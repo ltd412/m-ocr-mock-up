@@ -153,7 +153,7 @@ import unicodedata
 
 def remove_accents(input_str):
     """
-    Removes accents from a string (e.g. 'Lê Tiến Đạt' -> 'Le Tien Dat').
+    Removes accents from a string (e.g. 'Nguyễn Văn A' -> 'Nguyen Van A').
     """
     if not input_str:
         return ""

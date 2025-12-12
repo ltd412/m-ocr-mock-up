@@ -1,5 +1,5 @@
 import unittest
-from identity_ocr.mrz import parse_mrz
+from m_identify_ocr.mrz import parse_mrz
 
 class TestMRZParsing(unittest.TestCase):
     def test_td3_parsing(self):

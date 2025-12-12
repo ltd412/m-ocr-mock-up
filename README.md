@@ -57,7 +57,7 @@ pip install m-ocr-mockup
 ### Basic Usage (File Path)
 
 ```python
-from identity_ocr import read_passport
+from m_identify_ocr import read_passport
 
 # Path to your passport image
 image_path = "path/to/passport.jpg"
@@ -72,7 +72,7 @@ print(result)
 You can pass a Base64 string directly (with or without the `data:image/...;base64,` header).
 
 ```python
-from identity_ocr import read_passport
+from m_identify_ocr import read_passport
 
 # Your base64 string
 base64_string = "data:image/jpeg;base64,/9j/4AAQSkZJRg..."

@@ -2,7 +2,7 @@ import time
 import sys
 import os
 sys.path.append('src')
-from identity_ocr import read_passport
+from m_identify_ocr import read_passport
 import cv2
 import numpy as np
 
