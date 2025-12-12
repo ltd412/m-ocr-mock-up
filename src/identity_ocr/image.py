@@ -32,9 +32,16 @@ def preprocess_image(image_input):
     # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # Resize image (upscale) to help OCR with small text
-    # Doubling the size is a common trick
-    gray = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+    # Resize image logic
+    height, width = gray.shape[:2]
+    
+    if width < 1000:
+        # Upscale for better OCR on small images
+        gray = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+    elif width > 2000:
+        # Downscale for performance on very large images
+        scale = 2000 / width
+        gray = cv2.resize(gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
 
     # Apply some noise reduction
     # GaussianBlur is good for removing Gaussian noise
@@ -42,9 +49,9 @@ def preprocess_image(image_input):
 
     # Return grayscale directly, let Tesseract handle thresholding
     
-    # Morphological Opening to remove small noise (like the vertical bar of K if it's noise)
-    kernel = np.ones((2,2), np.uint8)
-    gray = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel)
+    # Morphological Opening is expensive and often unnecessary for high-res images
+    # kernel = np.ones((2,2), np.uint8)
+    # gray = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel)
     
     return gray
 

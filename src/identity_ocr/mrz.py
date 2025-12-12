@@ -54,11 +54,28 @@ def parse_mrz(mrz_text):
 
         # Aggressive cleaning for separators:
         # If K or X is adjacent to <, it's likely a misread <
-        # e.g. <K -> <<, X< -> <<
-        # Run this multiple times to handle chains like <KX<
-        for _ in range(3):
+        # Heuristic: Replace K or X with < if it is likely a filler
+        # This is aggressive but needed for noisy backgrounds
+        if '<' in cleaned:
             cleaned = re.sub(r'(?<=<)[KX]', '<', cleaned)
             cleaned = re.sub(r'[KX](?=<)', '<', cleaned)
+
+        # Heuristic: Replace L with < if it is likely a filler (common in some fonts/noise)
+        # Especially at the end of the line
+        # Replace sequence of 3+ L/K/< mixed at the end of line with <
+        # e.g. LLLLLKLKL -> <<<<<<<<<
+        
+        # Regex to find a sequence of L, K, or < at the end of the line, length at least 3
+        # We want to replace the L and K in that sequence with <
+        
+        # Strategy: Find the tail composed of [LK<], then replace [LK] with < in that tail.
+        match = re.search(r'([LK<]{3,})$', cleaned)
+        if match:
+            tail = match.group(1)
+            # Only if it contains at least one < or is very long (likely filler)
+            if '<' in tail or len(tail) > 5:
+                new_tail = tail.replace('L', '<').replace('K', '<')
+                cleaned = cleaned[:match.start(1)] + new_tail
 
         # Heuristic: PP at start of line 1 -> P<
         if line.startswith('PP'):
@@ -213,8 +230,8 @@ def _parse_td3(mrz_lines):
     checker = TD3CodeChecker(mrz_lines[0] + '\n' + mrz_lines[1])
     fields = checker.fields()
     
-    surname = str(fields.surname) if fields.surname else None
-    name = str(fields.name) if fields.name else None
+    surname = str(fields.surname).strip() if fields.surname else None
+    name = str(fields.name).strip() if fields.name else None
     
     if surname == 'None': surname = None
     if name == 'None': name = None
@@ -257,8 +274,8 @@ def _parse_td1(mrz_lines):
     fields = checker.fields()
     return {
         "type": "TD1",
-        "surname": fields.surname,
-        "name": fields.name,
+        "surname": str(fields.surname).strip() if fields.surname else None,
+        "name": str(fields.name).strip() if fields.name else None,
         "country": fields.country,
         "nationality": fields.nationality,
         "birth_date": fields.birth_date,
@@ -273,8 +290,8 @@ def _parse_td2(mrz_lines):
     fields = checker.fields()
     return {
         "type": "TD2",
-        "surname": fields.surname,
-        "name": fields.name,
+        "surname": str(fields.surname).strip() if fields.surname else None,
+        "name": str(fields.name).strip() if fields.name else None,
         "country": fields.country,
         "nationality": fields.nationality,
         "birth_date": fields.birth_date,

@@ -1,8 +1,14 @@
 import pytesseract
+import cv2
+import numpy as np
 from .image import preprocess_image, crop_mrz_region
 from .mrz import parse_mrz
 from .fulltext import extract_full_text
 from .utils import format_date, get_country_name, calculate_issue_date_from_expiry, normalize_date, remove_accents, extract_matching_fullname, correct_common_misspellings
+
+import os
+# Limit Tesseract threads to avoid contention in low-resource environments (like K8s with <1 CPU)
+os.environ['OMP_THREAD_LIMIT'] = '1'
 
 def read_passport(image_path, crop_mrz=True, extra_fields=False):
     """
@@ -29,6 +35,13 @@ def read_passport(image_path, crop_mrz=True, extra_fields=False):
         else:
             ocr_img = processed_img
 
+        # Optimize MRZ OCR: Downscale if too big (MRZ chars are large enough)
+        # Reverting to 800px (v0.1.11 state)
+        mrz_h, mrz_w = ocr_img.shape[:2]
+        if mrz_w > 800:
+            scale = 800 / mrz_w
+            ocr_img = cv2.resize(ocr_img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+
         # 3. OCR for MRZ
         # whitelist = A-Z, 0-9, <
         custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<' 
@@ -41,7 +54,18 @@ def read_passport(image_path, crop_mrz=True, extra_fields=False):
         
         # 5. Full Text Extraction (for Date of Issue and Extra Fields)
         # We always run this now to get Date of Issue, as it's not in MRZ.
-        full_text_data = extract_full_text(processed_img)
+        # Optimize: Only look at the visual zone (top ~75% of image) to avoid re-reading MRZ
+        height, width = processed_img.shape[:2]
+        visual_zone_img = processed_img[:int(height * 0.75), :]
+        
+        # Further optimize: Resize visual zone if it's too big
+        # 400px width is usually enough for "Place of Issue" (large text)
+        vz_h, vz_w = visual_zone_img.shape[:2]
+        if vz_w > 400:
+            scale = 400 / vz_w
+            visual_zone_img = cv2.resize(visual_zone_img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+            
+        full_text_data = extract_full_text(visual_zone_img)
         extra = full_text_data["extracted_fields"]
         
         # Extract Date of Issue specifically
@@ -83,8 +107,8 @@ def read_passport(image_path, crop_mrz=True, extra_fields=False):
 
         # Fullname Logic
         # Simply concatenate surname and name from MRZ
-        mrz_surname = result.get('surname', '') or ''
-        mrz_name = result.get('name', '') or ''
+        mrz_surname = str(result.get('surname', '') or '').strip()
+        mrz_name = str(result.get('name', '') or '').strip()
         
         # Convert to Title Case
         if mrz_surname:

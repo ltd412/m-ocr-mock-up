@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wfb-mobile-app-api
+  labels:
+    app: wfb-mobile-app-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wfb-mobile-app-api
+  template:
+    metadata:
+      labels:
+        app: wfb-mobile-app-api
+        priority: high
+    spec:
+      serviceAccountName: mobio
+      priorityClassName: high-priority
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              priority: high
+      containers:
+        - name: webformbuilder
+          image: {image}
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/sh", "-c" ]
+          # OPTIMIZATION 1: uWSGI Tuning
+          # - --threads 4: Tăng concurrency cho I/O (đọc file release GIL).
+          # - --offload-threads 2: Offload tác vụ đọc/ghi file tĩnh để worker không bị block.
+          # - --buffer-size 65536: Giữ nguyên (tốt cho header lớn).
+          args: [ "cd $WEB_FORM_BUILDER_HOME; sh prepare_env.sh && uwsgi --http :80 --wsgi-file app_mobile_form_builder_api.py --callable app --master --processes 4 --threads 4 --offload-threads 2 -b 65536 --lazy --enable-threads" ]
+          resources:
+            requests:
+              # OPTIMIZATION 2: CPU Request
+              # Tăng CPU request. 80m là quá thấp để xử lý I/O interrupt và context switch nhanh.
+              memory: 512Mi
+              cpu: 500m
+            limits:
+              # OPTIMIZATION 3: Memory Limit for Caching
+              # Tăng limit memory để OS có thể dùng RAM dư thừa làm Page Cache (cache file từ đĩa).
+              # Đây là yếu tố quan trọng nhất để đọc file nhanh nếu đọc lặp lại.
+              memory: 2Gi
+              cpu: 1000m
+          envFrom:
+            - configMapRef:
+                name: mobio-config
+            - secretRef:
+                name: mobio-secret
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: mobio-shared-data
+              mountPath: /media/data/resources/
+              readOnly: true # OPTIMIZATION 4: ReadOnly Mount (An toàn & gợi ý cho driver tối ưu)
+            - name: mobio-public-shared-data
+              mountPath: /media/data/public_resources/
+              readOnly: true
+          startupProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              port: 80
+              path: /wfb/mobile/api/v1.0/ping
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          livenessProbe:
+            httpGet:
+              port: 80
+              path: /wfb/mobile/api/v1.0/ping
+            initialDelaySeconds: 120
+            periodSeconds: 5
+            timeoutSeconds: 4
+            successThreshold: 1
+            failureThreshold: 3
+      initContainers:
+        - name: init-web-form-builder
+          image: {image}
+          command: [ '/bin/sh', '-c', "cd $WEB_FORM_BUILDER_HOME; sh prepare_env.sh && sh check_image.sh" ]
+          envFrom:
+            - configMapRef:
+                name: mobio-config
+            - secretRef:
+                name: mobio-secret
+          volumeMounts:
+            - name: mobio-shared-data
+              mountPath: /media/data/resources/
+              readOnly: true
+            - name: mobio-public-shared-data
+              mountPath: /media/data/public_resources/
+              readOnly: true
+      imagePullSecrets:
+        - name: registrypullsecret
+      volumes:
+        - name: mobio-shared-data
+          persistentVolumeClaim:
+            claimName: mobio-resources-pvc
+        - name: mobio-public-shared-data
+          persistentVolumeClaim:
+            claimName: mobio-public-resources-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wfb-mobile-app-api-service
+  labels:
+    app: wfb-mobile-app-api
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: wfb-mobile-app-api
